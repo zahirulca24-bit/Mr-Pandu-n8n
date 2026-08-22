@@ -1,0 +1,49 @@
+name: Deploy to Google Cloud VM
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/182959290285/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-deployer@dayfrodge-prod.iam.gserviceaccount.com'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy via IAP
+        run: |
+          # 1. Prepare target directory
+          gcloud compute ssh deployer@mr-pandu-n8n-vm \
+            --zone=us-central1-a \
+            --tunnel-through-iap \
+            --project=dayfrodge-prod \
+            --command="sudo mkdir -p /opt/mr-pandu-n8n && sudo chown deployer:deployer /opt/mr-pandu-n8n"
+          
+          # 2. SCP the source files (excluding .git)
+          # We use a temporary directory and rsync/scp to avoid copying .git which might have credentials or take time.
+          # Here we just SCP the whole directory and then remove .git on the VM.
+          gcloud compute scp --recurse . deployer@mr-pandu-n8n-vm:/opt/mr-pandu-n8n \
+            --zone=us-central1-a \
+            --tunnel-through-iap \
+            --project=dayfrodge-prod
+
+          # 3. Fix line endings just in case, then deploy
+          gcloud compute ssh deployer@mr-pandu-n8n-vm \
+            --zone=us-central1-a \
+            --tunnel-through-iap \
+            --project=dayfrodge-prod \
+            --command="cd /opt/mr-pandu-n8n && sudo rm -rf .git && sudo sed -i 's/\r$//' scripts/*.sh && sudo bash scripts/deploy.sh"
