@@ -1,0 +1,22 @@
+name: Validate n8n Zero-Cost Deployment Repo
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shell syntax
+        run: bash -n scripts/*.sh
+      - name: Repository zero-cost contract
+        run: python3 scripts/validate_repo.py
+      - name: Reject committed secret files
+        run: |
+          test ! -f .env
+          test ! -f duckdns-token.txt
+          test ! -f service-account.json
+          ! find . -type f \( -name '*.pem' -o -name '*.key' -o -name 'service-account*.json' \) -print -quit | grep -q .
