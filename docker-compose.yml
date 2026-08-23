@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: docker.n8n.io/n8nio/n8n:${N8N_VERSION:-2.33.3}
+    image: n8nio/n8n:${N8N_VERSION:-2.33.3}
     restart: unless-stopped
     environment:
       N8N_HOST: ${N8N_HOST}
