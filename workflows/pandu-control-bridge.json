@@ -1,0 +1,93 @@
+{
+  "name": "Mr. Pandu - Control Bridge",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pandu/control",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "cd53aa4d-943e-45b4-9a4c-a3d26701f7a1",
+      "name": "Pandu Control Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-420, 0],
+      "webhookId": "a1077038-c6d9-43d4-81cc-84a9035cbf4a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b381573d-f6db-4b88-b9fc-c9bdcd4d67c3",
+              "leftValue": "={{ $json.headers['x-pandu-shared-secret'] || '' }}",
+              "rightValue": "={{ $env.PANDU_SHARED_SECRET || '' }}",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "id": "e5aa6132-1940-462c-a8a0-97d9eb58c783",
+              "leftValue": "={{ $env.PANDU_SHARED_SECRET || '' }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b9f77491-df95-4473-b210-ea06a89cd9f5",
+      "name": "Validate Shared Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-180, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, connected: true, service: 'mr-pandu-n8n', requestId: $json.body.requestId || null, approvalRequired: false, message: 'Frontend ↔ n8n wiring is live. No external action was executed.' } }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "e0dd2f58-b5fb-4686-a1e7-0a79cbf424ce",
+      "name": "Authorized Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [80, -90]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, connected: true, message: 'Unauthorized Pandu bridge request.' } }}",
+        "options": { "responseCode": 401 }
+      },
+      "id": "6cb2330e-d250-427e-98cf-a372c623bc78",
+      "name": "Unauthorized Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [80, 100]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Pandu Control Webhook": {
+      "main": [[{ "node": "Validate Shared Secret", "type": "main", "index": 0 }]]
+    },
+    "Validate Shared Secret": {
+      "main": [
+        [{ "node": "Authorized Response", "type": "main", "index": 0 }],
+        [{ "node": "Unauthorized Response", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "dd1a26d0-e8e6-451a-ae93-48b7141bd72b",
+  "meta": { "templateCredsSetupCompleted": true },
+  "tags": []
+}

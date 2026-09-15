@@ -21,9 +21,11 @@ if [[ -f .env ]]; then
 fi
 
 KEY="$(openssl rand -hex 32)"
+PANDU_SECRET="$(openssl rand -hex 32)"
 cp .env.example .env
 sed -i "s/^N8N_HOST=.*/N8N_HOST=${HOST}/" .env
 sed -i "s/^N8N_ENCRYPTION_KEY=.*/N8N_ENCRYPTION_KEY=${KEY}/" .env
+sed -i "s/^PANDU_SHARED_SECRET=.*/PANDU_SHARED_SECRET=${PANDU_SECRET}/" .env
 chmod 600 .env
 
 echo "Created .env with a generated encryption key."

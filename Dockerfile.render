@@ -1,0 +1,9 @@
+FROM n8nio/n8n:2.33.3
+
+USER root
+COPY render-start.sh /opt/pandu/render-start.sh
+RUN chmod 755 /opt/pandu/render-start.sh
+USER node
+
+EXPOSE 5678
+ENTRYPOINT ["/opt/pandu/render-start.sh"]

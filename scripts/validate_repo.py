@@ -15,7 +15,7 @@ if missing:
 
 compose = (root / "docker-compose.yml").read_text(encoding="utf-8")
 for marker in [
-    "docker.n8n.io/n8nio/n8n", "N8N_ENCRYPTION_KEY", "WEBHOOK_URL",
+    "n8nio/n8n", "N8N_ENCRYPTION_KEY", "WEBHOOK_URL",
     "N8N_EDITOR_BASE_URL", "caddy", "n8n_data", "no-new-privileges:true",
 ]:
     if marker not in compose:

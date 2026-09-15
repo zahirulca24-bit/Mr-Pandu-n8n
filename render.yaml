@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: mr-pandu-n8n
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      - key: N8N_ENCRYPTION_KEY
+        sync: false
+      - key: PANDU_SHARED_SECRET
+        sync: false
+      - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
+        value: "true"
+      - key: N8N_PROXY_HOPS
+        value: "1"
+      - key: GENERIC_TIMEZONE
+        value: Asia/Dhaka
+      - key: TZ
+        value: Asia/Dhaka
+
+  - type: web
+    name: mr-pandu-frontend
+    runtime: node
+    plan: free
+    rootDir: ./frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: N8N_BASE_URL
+        value: https://mr-pandu-n8n.onrender.com
+      - key: N8N_WEBHOOK_PATH
+        value: pandu/control
+      - key: PANDU_N8N_SHARED_SECRET
+        sync: false
